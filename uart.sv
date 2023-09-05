@@ -15,6 +15,7 @@ module uart_tx(input logic clk, output logic tx);
             IDLE: begin
                 tx <= 1;
                 state <= START;
+                char_idx <= 0;
             end
             START: begin
                 tx <= 0;
@@ -28,7 +29,7 @@ module uart_tx(input logic clk, output logic tx);
             end
             STOP: begin
                 tx <= 1;
-                char_idx <= (char_idx < message_length) ? (char_idx + 1) : 0;
+                char_idx <= char_idx + 1;
                 state <= (char_idx < message_length) ? START : IDLE;
             end
         endcase
