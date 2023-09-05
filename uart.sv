@@ -3,7 +3,7 @@ module uart_tx(input logic clk, output logic tx);
 
     state_t state = IDLE;
     string message = "Hello World!\n";
-    localparam str_length = 13;
+    localparam message_length = 13;
     logic [3:0] char_idx = 0;
     logic [2:0] bit_cnt = 0;
     logic [7:0] current_char;
@@ -28,8 +28,8 @@ module uart_tx(input logic clk, output logic tx);
             end
             STOP: begin
                 tx <= 1;
-                char_idx <= (char_idx < str_length) ? (char_idx + 1) : 0;
-                state <= (char_idx < str_length) ? START : IDLE;
+                char_idx <= (char_idx < message_length) ? (char_idx + 1) : 0;
+                state <= (char_idx < message_length) ? START : IDLE;
             end
         endcase
     end
