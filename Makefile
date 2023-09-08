@@ -1,8 +1,12 @@
-uart.vcd: uart
-	vvp $<
+uart.vcd: uart.vvp
+	vvp -n $<
 
-uart: uart.sv uart_tb.sv
-	iverilog -g2012 -o $@ $?
+uart.vvp: uart.sv uart_tb.sv
+	iverilog -g2012 -o $@ $^
+
+.PHONY: watch
+watch:
+	ls *.sv | entr -cs "make uart.vcd"
 
 clean:
-	rm uart uart.vcd
+	rm uart.vvp uart.vcd
