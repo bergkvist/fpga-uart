@@ -2,7 +2,7 @@
 Sending "Hello world!\n" over UART in SystemVerilog 2012
 
 ## Dependencies
-- Icarus Verilog (for running simulation)
+- Icarus Verilog >=12.0 (for running simulation)
 - WaveTrace (VSCode extension) or GTKWave for visualizing simulation results
 
 ## Get started
