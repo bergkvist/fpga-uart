@@ -1,4 +1,4 @@
-module uart_tx_tb();
+module uart_tb();
     localparam CLOCK_RATE = 100_000;
     localparam BAUD_RATE = 9600;
 
@@ -24,9 +24,9 @@ module uart_tx_tb();
 
     logic [7:0] rxdata;
     UartRx #(
-        .DATA_WIDTH(8), 
+        .DATA_WIDTH(8),
         .BAUD_RATE(BAUD_RATE),
-        .CLOCK_RATE(CLOCK_RATE)    
+        .CLOCK_RATE(CLOCK_RATE)
     ) uartRx0(
         .clk(clk),
         .rx(tx),
