@@ -1,15 +1,40 @@
 `timescale 1ns/1ns
 
-module UartTx #(parameter DATA_WIDTH) (
+module uart(input logic clk, input logic rx, output logic tx);
+    parameter CLOCK_RATE = 100_000_000;
+    parameter BAUD_RATE = 9600;
+
+    logic uartClk, dataIsValid, txStart, idle;
+    byte data, tmpData, tmpDataSum;
+
+    ClockDivider#(.DIVIDER(CLOCK_RATE/BAUD_RATE))
+    clockdiv1(.clkIn(clk), .clkOut(uartClk));
+
+    UartRx#(.BAUD_RATE(BAUD_RATE), .CLOCK_RATE(CLOCK_RATE))
+    uartRx1(.clk(clk), .rx(rx), .data(data), .dataIsValid(dataIsValid));
+
+    UartTx#(.DATA_WIDTH(8))
+    uartTx1(.uartClk(uartClk), .message(tmpDataSum), .start(txStart), .tx(tx), .idle(idle));
+
+    always_ff @(posedge dataIsValid) begin
+        tmpData <= data;
+        tmpDataSum <= tmpData + data;
+        txStart <= 1;
+    end
+    always_ff @(posedge uartClk) txStart <= 0;
+endmodule
+
+
+module UartTx #(parameter DATA_WIDTH = 8) (
     input logic uartClk,
     input logic [DATA_WIDTH-1:0] message,
     input logic start,
     output logic tx = 1,
     output logic idle
 );
-    typedef enum logic [1:0] { IDLE, START, DATA, STOP } state_t;
+    typedef enum { IDLE, START, DATA, STOP } state_t;
     state_t state = IDLE, nextState;
-    logic [10:0] bitPos = DATA_WIDTH - 8, nextBitPos;
+    logic [$clog2(DATA_WIDTH)-1:0] bitPos = DATA_WIDTH - 8, nextBitPos;
     logic nextTx;
 
     always_comb case(state)
@@ -52,17 +77,18 @@ endmodule
 module UartRx #(parameter BAUD_RATE, parameter CLOCK_RATE) (
     input logic clk,
     input logic rx,
-    output logic [7:0] data
+    output byte data,
+    output logic dataIsValid = 0
 );
     localparam PULSECNT_MAX = CLOCK_RATE / BAUD_RATE;
     localparam PULSECNT_WIDTH = $clog2(PULSECNT_MAX);
 
-    typedef enum logic [1:0] { IDLE, START, DATA, STOP } state_t;
+    typedef enum { IDLE, START, DATA, STOP } state_t;
 
     state_t state = IDLE, nextState = IDLE;
     logic [PULSECNT_WIDTH-1:0] pulseCnt = 0, nextPulseCnt;
     logic [2:0] bitCnt = 0, nextBitCnt;
-    logic [7:0] buffer, nextData;
+    byte nextData;
     logic startBit;
 
     logic pulseCntMeasure, pulseCntDone;
@@ -78,8 +104,11 @@ module UartRx #(parameter BAUD_RATE, parameter CLOCK_RATE) (
 
     always_ff @(posedge pulseCntMeasure) case(state)
         START: startBit <= rx;
-        DATA: buffer[bitCnt] <= rx;
-        STOP: if (startBit === 0 && rx === 1) nextData <= buffer;
+        DATA: begin
+            nextData[bitCnt] <= rx;
+            dataIsValid <= 0;
+        end
+        STOP: if (startBit === 0 && rx === 1) dataIsValid <= 1;
         default:;
     endcase
 
@@ -100,4 +129,13 @@ module UartRx #(parameter BAUD_RATE, parameter CLOCK_RATE) (
         DATA: nextBitCnt = (pulseCntDone === 1) ? (bitCnt + 1) : bitCnt;
         default: nextBitCnt = 0;
     endcase
+endmodule
+
+
+module ClockDivider #(parameter DIVIDER = 1) (input logic clkIn, output logic clkOut);
+    logic [$clog2(DIVIDER)-1:0] counter = 0;
+    always @(posedge clkIn) begin
+        counter <= (counter === DIVIDER) ? 0 : (counter + 1);
+        clkOut <= (counter < DIVIDER/2) ? 1 : 0;
+    end
 endmodule
