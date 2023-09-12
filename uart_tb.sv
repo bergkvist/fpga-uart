@@ -4,7 +4,7 @@ module uart_tb();
 
     initial begin
         $dumpfile("uart.vcd");
-        $dumpvars(0, uart_tx_tb);
+        $dumpvars(0, uart_tb);
     end
 
     logic tx, idle, start = 0;
