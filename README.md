@@ -1,5 +1,5 @@
 # fpga-uart
-Sending "Hello world!\n" over UART in SystemVerilog 2012
+Communication over UART in SystemVerilog 2012
 
 ## Dependencies
 - Icarus Verilog >=12.0 (for running simulation)
