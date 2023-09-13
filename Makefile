@@ -6,7 +6,7 @@ uart.vvp: uart.sv uart_tb.sv
 
 .PHONY: watch
 watch:
-	ls *.sv | entr -cs "make uart.vcd"
+	ls *.sv | entr -csr "make uart.vcd"
 
 clean:
 	rm uart.vvp uart.vcd
