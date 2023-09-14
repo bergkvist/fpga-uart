@@ -110,6 +110,7 @@ module UartRx #(parameter BAUD_RATE, parameter CLOCK_RATE) (
         default: pulseCntMeasure = 0;
     endcase
 
+    logic startBit;
     byte nextData;
     always_ff @(posedge pulseCntMeasure) case(state)
         START: startBit <= rxd;
@@ -124,7 +125,6 @@ module UartRx #(parameter BAUD_RATE, parameter CLOCK_RATE) (
         default:;
     endcase
 
-    logic startBit;
     always_ff @(posedge pulseCntMeasure) case(state)
         IDLE:; START:;
         STOP: if (startBit === 0 && rxd === 1) dataIsValid <= 1;
